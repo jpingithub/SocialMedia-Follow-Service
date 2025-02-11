@@ -1,7 +1,17 @@
 package com.rb.follow.service;
 
-import org.springframework.stereotype.Service;
+import com.rb.follow.dto.FollowRequest;
+import com.rb.follow.dto.FollowUser;
+import com.rb.follow.dto.User;
+import com.rb.follow.entity.Follow;
 
-@Service
-public class FollowService {
+import java.util.List;
+
+public interface FollowService {
+
+    Follow follow(FollowRequest followRequest);
+    void unFollow(FollowRequest followRequest);
+    List<FollowUser> getFollowers(String userId);
+    List<FollowUser> getFollowings(String userId);
+
 }
