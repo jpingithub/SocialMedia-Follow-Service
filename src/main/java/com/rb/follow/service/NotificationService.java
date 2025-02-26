@@ -21,7 +21,7 @@ public class NotificationService {
 
     @Value("${messaging.exchange}")
     private String EXCHANGE_NAME;
-    @Value("${messaging.follow.routing-key}")
+    @Value("${messaging.routing-key}")
     private String ROUTING_KEY;
     @Value("${mailing.subject-text}")
     private String subject;
@@ -37,8 +37,8 @@ public class NotificationService {
             FollowEvent followEvent = new FollowEvent();
             followEvent.setToMail(email);
             followEvent.setSubject(subject);
-            if(action==TypeOfAction.FOLLOW)followEvent.setContent(loggedInUser+followingContent);
-            else if (action == TypeOfAction.UNFOLLOW) followEvent.setContent(loggedInUser+unfollowingContent);
+            if(action==TypeOfAction.FOLLOW)followEvent.setContent(loggedInUser+" "+followingContent);
+            else if (action == TypeOfAction.UNFOLLOW) followEvent.setContent(loggedInUser+" "+unfollowingContent);
             rabbitTemplate.convertAndSend(EXCHANGE_NAME,ROUTING_KEY,followEvent);
             log.info("Message sent to rabbit MQ");
         }
