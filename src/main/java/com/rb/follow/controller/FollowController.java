@@ -1,6 +1,5 @@
 package com.rb.follow.controller;
 
-import com.rb.follow.dto.FollowRequest;
 import com.rb.follow.dto.FollowUser;
 import com.rb.follow.entity.Follow;
 import com.rb.follow.service.FollowService;
@@ -19,13 +18,13 @@ public class FollowController {
     private final FollowService followService;
 
     @PostMapping("following-to/{following}")
-    public ResponseEntity<Follow> follow(@RequestHeader("${customized-header-for-token}")String username, @PathVariable("following") String followingUsername) {
-        return new ResponseEntity<>(followService.follow(username,followingUsername), HttpStatus.CREATED);
+    public ResponseEntity<Follow> follow(@RequestHeader("${customized-header-for-token}")String loggedInUsername, @PathVariable("following") String followingUsername) {
+        return new ResponseEntity<>(followService.follow(loggedInUsername,followingUsername), HttpStatus.CREATED);
     }
 
-    @DeleteMapping
-    public ResponseEntity<?> unFollow(@RequestBody FollowRequest followRequest) {
-        followService.unFollow(followRequest);
+    @DeleteMapping("{followingUser}")
+    public ResponseEntity<?> unFollow(@RequestHeader("${customized-header-for-token}")String loggedInUsername,@PathVariable("followingUser") String followingUsername) {
+        followService.unFollow(loggedInUsername,followingUsername);
         return ResponseEntity.ok("Un-follow successful");
     }
 
@@ -34,9 +33,19 @@ public class FollowController {
         return new ResponseEntity<>(followService.getFollowers(username), HttpStatus.OK);
     }
 
-    @GetMapping("/followings/{id}")
-    public ResponseEntity<List<FollowUser>> followings(@PathVariable("id") String userId) {
-        return new ResponseEntity<>(followService.getFollowings(userId), HttpStatus.OK);
+    @GetMapping("/followers/{username}")
+    public ResponseEntity<List<FollowUser>> followersOfOtherUser(@PathVariable("username")String username) {
+        return new ResponseEntity<>(followService.getFollowers(username), HttpStatus.OK);
+    }
+
+    @GetMapping("/followings")
+    public ResponseEntity<List<FollowUser>> followings(@RequestHeader("${customized-header-for-token}")String username) {
+        return new ResponseEntity<>(followService.getFollowings(username), HttpStatus.OK);
+    }
+
+    @GetMapping("/followings/{username}")
+    public ResponseEntity<List<FollowUser>> followingsOfOtherUser(@PathVariable("username") String username) {
+        return new ResponseEntity<>(followService.getFollowings(username), HttpStatus.OK);
     }
 
 }

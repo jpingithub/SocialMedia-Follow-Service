@@ -2,14 +2,12 @@ package com.rb.follow.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rb.follow.client.UserClient;
-import com.rb.follow.dto.FollowRequest;
 import com.rb.follow.dto.FollowUser;
 import com.rb.follow.dto.User;
 import com.rb.follow.entity.Follow;
 import com.rb.follow.exception.FollowException;
 import com.rb.follow.exception.UserException;
 import com.rb.follow.repository.FollowRepository;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -29,7 +27,7 @@ public class FollowServiceImpl implements FollowService {
     private final ObjectMapper objectMapper;
 
     @Override
-    public Follow follow(String loggedInUser,String followingUsername) {
+    public Follow follow(String loggedInUser, String followingUsername) {
         checkUserExistence(loggedInUser);
         checkUserExistence(followingUsername);
         if (loggedInUser.equals(followingUsername)) {
@@ -50,11 +48,10 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
-    public void unFollow(FollowRequest followRequest) {
-        String follower = followRequest.getFollowerId(), following = followRequest.getFollowingId();
-        checkUserExistence(follower);
-        checkUserExistence(following);
-        long numberOfFollowsDeleted = followRepository.deleteByFollowerIdAndFollowingId(follower, following);
+    public void unFollow(String loggedInUsername,String followingUsername) {
+        checkUserExistence(followingUsername);
+        checkUserExistence(loggedInUsername);
+        long numberOfFollowsDeleted = followRepository.deleteByFollowerIdAndFollowingId(loggedInUsername, followingUsername);
         if (numberOfFollowsDeleted > 0) {
             log.info("Follow deleted successfully");
         } else {
@@ -67,7 +64,7 @@ public class FollowServiceImpl implements FollowService {
     public List<FollowUser> getFollowers(String username) {
         checkUserExistence(username);
         Optional<List<Follow>> optionalFollowers = followRepository.findByFollowingId(username);
-        if (optionalFollowers.isPresent() && optionalFollowers.get().size()>0) {
+        if (optionalFollowers.isPresent() && optionalFollowers.get().size() > 0) {
             List<Follow> follows = optionalFollowers.get();
             log.info("{} followers found to {}", follows.size(), username);
             return getFollowUserFromFollows(follows);
@@ -78,24 +75,24 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
-    public List<FollowUser> getFollowings(String userId) {
-        checkUserExistence(userId);
-        Optional<List<Follow>> optionalFollowings = followRepository.findByFollowerId(userId);
+    public List<FollowUser> getFollowings(String username) {
+        checkUserExistence(username);
+        Optional<List<Follow>> optionalFollowings = followRepository.findByFollowerId(username);
         if (optionalFollowings.isPresent() && !optionalFollowings.get().isEmpty()) {
             List<Follow> follows = optionalFollowings.get();
-            log.info("{} followings found to {}", follows.size(), userId);
+            log.info("{} followings found to {}", follows.size(), username);
             return getFollowUserFromFollows(follows);
         } else {
-            log.info("No followings found : {}", userId);
+            log.info("No followings found : {}", username);
             throw new FollowException("You have not followed anyone");
         }
     }
 
     private void checkUserExistence(String username) {
         ResponseEntity<User> userResponseEntity = userClient.searchUser(username);
-        if(userResponseEntity.getStatusCode()== HttpStatus.OK){
+        if (userResponseEntity.getStatusCode() == HttpStatus.OK) {
             log.info("User found : {}", username);
-        }else{
+        } else {
             log.info("No user found with username : {}", username);
             throw new UserException("No user found with username : " + username);
         }
