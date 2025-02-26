@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface FollowService {
 
-    Follow follow(FollowRequest followRequest);
+    Follow follow(String loggedInUser,String followingUsername);
     void unFollow(FollowRequest followRequest);
     List<FollowUser> getFollowers(String userId);
     List<FollowUser> getFollowings(String userId);
