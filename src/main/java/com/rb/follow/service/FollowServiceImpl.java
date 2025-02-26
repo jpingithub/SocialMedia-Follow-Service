@@ -1,8 +1,8 @@
 package com.rb.follow.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rb.follow.client.UserClient;
 import com.rb.follow.dto.FollowUser;
+import com.rb.follow.dto.TypeOfAction;
 import com.rb.follow.dto.User;
 import com.rb.follow.entity.Follow;
 import com.rb.follow.exception.FollowException;
@@ -24,7 +24,7 @@ public class FollowServiceImpl implements FollowService {
 
     private final FollowRepository followRepository;
     private final UserClient userClient;
-    private final ObjectMapper objectMapper;
+    private final NotificationService notificationService;
 
     @Override
     public Follow follow(String loggedInUser, String followingUsername) {
@@ -40,6 +40,7 @@ public class FollowServiceImpl implements FollowService {
                 Follow follow = new Follow();
                 follow.setFollowerId(loggedInUser);
                 follow.setFollowingId(followingUsername);
+                notificationService.publishFollowEvent(loggedInUser,followingUsername, TypeOfAction.FOLLOW);
                 return followRepository.save(follow);
             }
             log.info("User {} already following {}", loggedInUser, followingUsername);
@@ -53,6 +54,7 @@ public class FollowServiceImpl implements FollowService {
         checkUserExistence(loggedInUsername);
         long numberOfFollowsDeleted = followRepository.deleteByFollowerIdAndFollowingId(loggedInUsername, followingUsername);
         if (numberOfFollowsDeleted > 0) {
+            notificationService.publishFollowEvent(loggedInUsername,followingUsername, TypeOfAction.UNFOLLOW);
             log.info("Follow deleted successfully");
         } else {
             log.info("No following history found to delete");
